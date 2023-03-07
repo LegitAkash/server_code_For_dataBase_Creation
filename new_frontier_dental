@@ -1,0 +1,44 @@
+# importing the nessesary library
+import pandas as pd
+import numpy as np
+import time
+import pymysql
+from sqlalchemy import create_engine
+import mysql.connector
+#loading the dataframes to the memory
+start=time.time()
+df1=pd.read_csv("turened_1.csv")
+df2=pd.read_csv("Sales_Prices_20230306_Focus (1).csv",encoding="latin-1")
+# preprcossesing of the dataframe1
+df1["acumatica_id"]=np.nan
+df1["company_id"]=1
+df1["SourcePrice"]=np.nan
+df1["created_at"]=pd.Timestamp.now()
+df1["updated_at"]=pd.Timestamp.now()
+df1=df1[["acumatica_id","Inventory ID","Price Type","Price Code","Price","SourcePrice","Currency","Effective Date","UOM","Break Qty","Warehouse","Expiration Date","Description","created_at","updated_at","company_id"]]
+df1.rename(columns={'Inventory ID':'InventoryID','Price Type':'PriceType','Price Code':'PriceCode','Effective Date':'EffectiveDate','Break Qty':'BreakQty','Expiration Date':'ExpirationDate'},inplace=True)
+# preprcossesing of the dataframe2
+df2["acumatica_id"]=np.nan
+df2["company_id"]=2
+df2["SourcePrice"]=np.nan
+df2["SourcePrice"]=np.nan
+df2["created_at"]=pd.Timestamp.now()
+df2["updated_at"]=pd.Timestamp.now()
+df2=df2[["acumatica_id","Inventory ID","Price Type","Price Code","Price","SourcePrice","Currency","Effective Date","UOM","Break Qty","Warehouse","Expiration Date","Description","created_at","updated_at","company_id"]]
+df2.rename(columns={'Inventory ID':'InventoryID','Price Type':'PriceType','Price Code':'PriceCode','Effective Date':'EffectiveDate','Break Qty':'BreakQty','Expiration Date':'ExpirationDate'},inplace=True)
+
+# establishin the connection and Creating a temp table
+
+mydb = mysql.connector.connect(host = "localhost",user = "root",password = "",database = "testing_1")
+cursor = mydb.cursor()
+cursor.execute("CREATE OR REPLACE TABLE sales_temp8 LIKE sales_prices;")
+mydb.close()
+
+# writing the dataframe to the tables
+cnx = create_engine('mysql+pymysql://root:@localhost/testing_1')  
+df1.to_sql('sales_temp8', con=cnx, if_exists='append',index=False)
+cnx = create_engine('mysql+pymysql://root:@localhost/testing_1')  
+df2.to_sql('sales_temp8', con=cnx, if_exists='append',index=False)
+end=time.time()
+total_time=end-start
+print(total_time)
